@@ -32,4 +32,11 @@ async def test_async_cohere_exception_records_error_once(
     assert span.name == "cohere.chat"
     assert span.status.status_code == StatusCode.ERROR
     assert "cohere async failure" in span.status.description
-    assert not any("Calling end() on an ended span" in record.message for record in caplog.records)
+    assert any(
+        event.name == "exception"
+        and "cohere async failure" in event.attributes.get("exception.message", "")
+        for event in span.events
+    )
+    assert not any(
+        "Calling end() on an ended span" in record.message for record in caplog.records
+    )
